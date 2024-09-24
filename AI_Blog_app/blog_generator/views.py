@@ -11,6 +11,13 @@ import os
 import assemblyai as aai
 import openai
 from .models import BlogPost
+from dotenv import load_dotenv
+
+
+load_dotenv()
+
+aai.settings.api_key = os.getenv('ASSEMBLYAI_API_KEY')
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
 # Create your views here.
 @login_required
@@ -71,7 +78,6 @@ def download_audio(link):
 
 def get_transcription(link):
     audio_file = download_audio(link)
-    aai.settings.api_key = "99f823cf5391478780d2e7f4068fe119"
 
     transcriber = aai.Transcriber()
     transcript = transcriber.transcribe(audio_file)
@@ -79,7 +85,6 @@ def get_transcription(link):
     return transcript.text
 
 def generate_blog_from_transcription(transcription):
-    openai.api_key = "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"
     prompt = f"Based on the following transcript from a YouTube video, write a comprehensive blog article, write it based on the transcript, but dont make it look like a youtube video, make it look like a proper blog article:\n\n{transcription}\n\nArticle:"
 
     response = openai.Completion.create(
