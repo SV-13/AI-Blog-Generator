@@ -88,7 +88,7 @@ def generate_blog_from_transcription(transcription):
     prompt = f"Based on the following transcript from a YouTube video, write a comprehensive blog article, write it based on the transcript, but dont make it look like a youtube video, make it look like a proper blog article:\n\n{transcription}\n\nArticle:"
 
     response = openai.Completion.create(
-        model="text-davinci-003",
+        model="gpt-3.5-turbo-instruct",
         prompt=prompt,
         max_tokens=1000
     )
