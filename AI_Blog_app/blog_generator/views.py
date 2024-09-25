@@ -1,6 +1,6 @@
-from django.shortcuts import render,redirect
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate,login,logout
+from django.contrib.auth import authenticate, login, logout
+from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
@@ -11,13 +11,6 @@ import os
 import assemblyai as aai
 import openai
 from .models import BlogPost
-from dotenv import load_dotenv
-
-
-load_dotenv()
-
-aai.settings.api_key = os.getenv('ASSEMBLYAI_API_KEY')
-openai.api_key = os.getenv('OPENAI_API_KEY')
 
 # Create your views here.
 @login_required
@@ -78,6 +71,7 @@ def download_audio(link):
 
 def get_transcription(link):
     audio_file = download_audio(link)
+    aai.settings.api_key = "your-assemblyai-api-key"
 
     transcriber = aai.Transcriber()
     transcript = transcriber.transcribe(audio_file)
@@ -85,10 +79,12 @@ def get_transcription(link):
     return transcript.text
 
 def generate_blog_from_transcription(transcription):
+    openai.api_key = "your-openai-api-key"
+
     prompt = f"Based on the following transcript from a YouTube video, write a comprehensive blog article, write it based on the transcript, but dont make it look like a youtube video, make it look like a proper blog article:\n\n{transcription}\n\nArticle:"
 
     response = openai.Completion.create(
-        model="gpt-3.5-turbo-instruct",
+        model="text-davinci-003",
         prompt=prompt,
         max_tokens=1000
     )
@@ -111,39 +107,41 @@ def blog_details(request, pk):
         return redirect('/')
 
 def user_login(request):
-    if request.method=='POST':
-        username=request.POST['username']
-        password=request.POST['password']
-        
-        user=authenticate(request, username=username, password=password)
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+
+        user = authenticate(request, username=username, password=password)
         if user is not None:
-            login(request,user)
+            login(request, user)
             return redirect('/')
         else:
-            error_message="Invalid Username or Password"
-            return render(request,'login.html',{'error_message':error_message})
-    return render(request,'login.html')
+            error_message = "Invalid username or password"
+            return render(request, 'login.html', {'error_message': error_message})
+        
+    return render(request, 'login.html')
 
 def user_signup(request):
-    if request.method=='POST':
-        username=request.POST['username']
-        email=request.POST['email']
-        password=request.POST['password']
-        repeatPassword=request.POST['repeatPassword']
-        
+    if request.method == 'POST':
+        username = request.POST['username']
+        email = request.POST['email']
+        password = request.POST['password']
+        repeatPassword = request.POST['repeatPassword']
+
         if password == repeatPassword:
             try:
-                user=User.objects.create_user(username, email,password)
+                user = User.objects.create_user(username, email, password)
                 user.save()
                 login(request, user)
                 return redirect('/')
             except:
-                error_message="Error creating account"
-                return render(request,'signup.html',{'error_message':error_message})
+                error_message = 'Error creating account'
+                return render(request, 'signup.html', {'error_message':error_message})
         else:
-            error_message="Password do not match"
-            return render(request,'signup.html',{'error_message':error_message})
-    return render(request,'signup.html')
+            error_message = 'Password do not match'
+            return render(request, 'signup.html', {'error_message':error_message})
+        
+    return render(request, 'signup.html')
 
 def user_logout(request):
     logout(request)
